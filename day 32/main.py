@@ -1,42 +1,28 @@
-# import smtplib
-#
-my_email = "oldbutbronz@gmail.com"
-my_password = "xkpj hxsq ybeq yhwz"
-#
-# with smtplib.SMTP("smtp.gmail.com") as connection:
-#     connection.starttls()
-#     connection.login(user=my_email, password=my_password)
-#     connection.sendmail(
-#         from_addr=my_email,
-#         to_addrs="bekirinal5415@gmail.com",
-#         msg="Subject:Hello\n\nThis is the body of my email"
-#     )
-
-# import datetime as dt
-#
-# now = dt.datetime.now()
-# day = now.weekday()
-#
-#
-# date_of_birth = dt.datetime(year=2005, month=8, day=2)
-# print(date_of_birth)
-
-import datetime as dt
-import smtplib
+from datetime import datetime
+import pandas
 import random
+import smtplib
 
-day_of_week = dt.datetime.now().weekday()
-if day_of_week == 1:
-    with open("quotes.txt") as file:
-        quote_file = file.readlines()
-        quote = random.choice(quote_file)
+MY_EMAIL = "oldbutbronz@gmail.com"
+MY_PASSWORD = "xkpj hxsq ybeq yhwz"
 
-    print(quote)
+today = datetime.now()
+today_tuple = (today.month, today.day)
+
+data = pandas.read_csv("birthdays.csv")
+birthdays_dict = {(data_row["month"], data_row["day"]): data_row for (index, data_row) in data.iterrows()}
+if today_tuple in birthdays_dict:
+    birthday_person = birthdays_dict[today_tuple]
+    file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
+    with open(file_path) as letter_file:
+        contents = letter_file.read()
+        contents = contents.replace("[NAME]", birthday_person["name"])
+
     with smtplib.SMTP("smtp.gmail.com") as connection:
         connection.starttls()
-        connection.login(user=my_email, password=my_password)
+        connection.login(MY_EMAIL, MY_PASSWORD)
         connection.sendmail(
-            from_addr=my_email,
-            to_addrs="bekirinal5415@gmail.com",
-            msg=f"Subject:Quote of the beautiful monday...\n\n{quote}"
-     )
+            from_addr=MY_EMAIL,
+            to_addrs=birthday_person["email"],
+            msg=f"Subject:Happy Birthday!\n\n{contents}"
+        )
